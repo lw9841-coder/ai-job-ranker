@@ -1,0 +1,695 @@
+{
+  "ntfy_server": "https://ntfy.sh",
+  "ntfy_topic": "replace-with-a-long-random-topic",
+  "max_alerts_per_run": 15,
+  "salary_floor_usd": 70000,
+  "title_include": [
+    "implementation",
+    "onboarding",
+    "customer success",
+    "client success",
+    "customer experience",
+    "technical account manager",
+    "\\bsolutions? (consultant|specialist|engineer|analyst|manager|strategist)",
+    "\\bdeployment (strategist|specialist|manager|engineer)",
+    "forward[- ]deployed",
+    "\\bsupport (specialist|engineer|associate|analyst|representative|agent|operations)",
+    "technical support",
+    "customer support",
+    "product support",
+    "automation",
+    "workflow",
+    "\\bprompt",
+    "\\bai (operations|ops|specialist|consultant|strategist|implementation|enablement|adoption|automation|solutions)",
+    "(revenue|gtm|go-to-market|support|customer|business systems?) operations",
+    "\\badoption\\b",
+    "enablement",
+    "professional services",
+    "integrations? (specialist|engineer|consultant|manager|analyst)",
+    "customer engineer",
+    "business systems",
+    "gtm engineer",
+    "community (engagement|relations)",
+    "success (manager|specialist|associate|engineer)",
+    "\\bcx\\b",
+    "customer advocacy",
+    "data operations",
+    "\\b(church|ministry|ministries|pastor(al)?|faith)\\b"
+  ],
+  "gig_include": [
+    "\\bai (trainer|tutor)",
+    "annotat",
+    "data label",
+    "model evaluat",
+    "\\brater\\b",
+    "\\bai evaluator",
+    "ai data (specialist|contributor)",
+    "rlhf"
+  ],
+  "title_exclude": [
+    "\\b(senior|sr\\.?|staff|principal|director|head of|vice president|vp|avp|svp|evp|chief|lead|leader|architect)\\b",
+    "software|machine learning|\\bml\\b|research|scientist|data engineer|infrastructure|backend|back-end|frontend|front-end|full[- ]?stack|devops|site reliability|\\bsre\\b|security|platform engineer|test automation|qa automation|automation test|quality assurance|\\bqa\\b|firmware|hardware|kernel|compiler|\\bgpu\\b|silicon|network engineer|database|analytics engineer|mobile|\\bios\\b|android",
+    "account executive|sales development|business development|\\bsdr\\b|\\bbdr\\b|\\bae\\b|account director|sales (manager|representative|rep\\b|lead|director)|partner(ship)?s? (manager|lead|director)",
+    "recruit|talent|counsel|legal|attorney|paralegal|finance|accountant|accounting|payroll|\\btax\\b|marketing manager|brand|designer|\\bdesign\\b|product manager|product marketing|copywriter|content (writer|marketing)|people (partner|operations)|\\bhr\\b|human resources|executive assistant|\\bintern\\b|internship|new grad|\\bphd\\b|physician|nurse|clinical|medical|pharmac|radiolog|doctor|lawyer|actuar",
+    "\\b(japanese|korean|mandarin|chinese|cantonese|german|french|spanish|portuguese|italian|dutch|arabic|hindi|turkish|polish|swedish|norwegian|danish|finnish|hebrew|russian|vietnamese|thai|indonesian|tagalog)\\b",
+    "\\b(emea|apac|apj|latam|anz|dach|nordics|benelux|uk|u\\.k\\.|united kingdom|japan|korea|india|singapore|australia|canada|brazil|mexico|europe|germany|france|spain|italy|netherlands|ireland|israel|london|dublin|paris|tokyo|seoul|sydney|toronto|berlin|munich|amsterdam|zurich|madrid|stockholm|bangalore|bengaluru|hyderabad|warsaw|tel aviv|s[a\u00e3]o paulo|melbourne|vancouver|montreal)\\b",
+    "forward[- ]deployed (ai |software |ml |data )?engineer",
+    "deploy(ed|ment) engineer",
+    "engineering manager",
+    "^manager\\b",
+    "pre-?sales|\\bpre and post|professional services sales",
+    "\\berp\\b|guidewire|sitecore|\\bsap\\b|oracle|netsuite|tableau|mulesoft|dynamics 365|peoplesoft",
+    "manufacturing",
+    "\\bit (support|operations|specialist|administrator|technician)|\\bit/|helpdesk|help desk",
+    "people systems",
+    "executive business|business parter|business partner",
+    "university grad|new grad|graduate program|campus",
+    "safety",
+    "data cent(er|re) (build|construction|technician)|build and deploy",
+    "clinician",
+    "(?<!post-)(?<!post )\\bsales\\b(?! (enablement|operations|ops))"
+  ],
+  "non_us_places": [
+    "\\b(emea|apac|apj|latam|anz|dach|nordics|benelux|europe|asia|africa|oceania|middle east)\\b",
+    "\\b(uk|u\\.k\\.|united kingdom|england|scotland|wales|ireland|germany|france|spain|portugal|italy|netherlands|belgium|switzerland|austria|sweden|norway|denmark|finland|poland|czech|romania|hungary|greece|turkey|israel|uae|united arab emirates|saudi|qatar|egypt|nigeria|kenya|south africa|india|pakistan|bangladesh|sri lanka|singapore|malaysia|indonesia|philippines|vietnam|thailand|japan|korea|china|hong kong|taiwan|australia|new zealand|canada|mexico|brazil|argentina|colombia|chile|peru|costa rica|uruguay)\\b",
+    "\\b(london|dublin|paris|berlin|munich|hamburg|amsterdam|zurich|geneva|madrid|barcelona|lisbon|milan|rome|stockholm|copenhagen|oslo|helsinki|warsaw|krakow|prague|bucharest|tel aviv|dubai|riyadh|cairo|lagos|nairobi|cape town|bangalore|bengaluru|hyderabad|mumbai|delhi|gurgaon|gurugram|noida|pune|chennai|karachi|lahore|dhaka|manila|jakarta|kuala lumpur|ho chi minh|bangkok|tokyo|osaka|seoul|beijing|shanghai|shenzhen|taipei|sydney|melbourne|auckland|toronto|vancouver|montreal|ottawa|calgary|mexico city|guadalajara|s[a\u00e3]o paulo|rio de janeiro|buenos aires|bogot[a\u00e1]|medell[i\u00ed]n|santiago|lima)\\b"
+  ],
+  "us_strong": [
+    "\\b(us|u\\.s\\.?|usa|u\\.s\\.a\\.?|united states|north america|americas|amer)\\b",
+    "\\b(san francisco|new york|nyc|seattle|austin|boston|chicago|denver|los angeles|atlanta|miami|dallas|houston|washington,? d\\.?c|palo alto|mountain view|san jose|san diego|portland|philadelphia|phoenix|salt lake|nashville|raleigh|pittsburgh|minneapolis|detroit|charlotte|bay area|silicon valley)\\b"
+  ],
+  "dallas_area": [
+    "\\b(dallas|fort worth|dfw|plano|irving|frisco|richardson|addison|denton|mckinney|allen, tx|lewisville|carrollton|garland|grapevine|southlake|las colinas|arlington, tx)\\b"
+  ],
+  "ai_signal": [
+    "\\bAI\\b",
+    "(?i:artificial intelligence|machine learning|generative|agentic)",
+    "\\bLLMs?\\b",
+    "\\bGPT"
+  ],
+  "feeds": {
+    "himalayas_queries": [
+      "implementation",
+      "onboarding",
+      "customer success",
+      "solutions consultant",
+      "support specialist",
+      "automation",
+      "AI operations",
+      "workflow"
+    ],
+    "jobicy": true,
+    "weworkremotely": true
+  },
+  "companies": [
+    {
+      "name": "Anthropic",
+      "ats": "greenhouse",
+      "token": "anthropic"
+    },
+    {
+      "name": "Scale AI",
+      "ats": "greenhouse",
+      "token": "scaleai"
+    },
+    {
+      "name": "Databricks",
+      "ats": "greenhouse",
+      "token": "databricks"
+    },
+    {
+      "name": "Glean",
+      "ats": "greenhouse",
+      "token": "gleanwork"
+    },
+    {
+      "name": "Airtable",
+      "ats": "greenhouse",
+      "token": "airtable"
+    },
+    {
+      "name": "Apollo.io",
+      "ats": "greenhouse",
+      "token": "apolloio"
+    },
+    {
+      "name": "Arize AI",
+      "ats": "greenhouse",
+      "token": "arizeai"
+    },
+    {
+      "name": "AssemblyAI",
+      "ats": "greenhouse",
+      "token": "assemblyai"
+    },
+    {
+      "name": "Celonis",
+      "ats": "greenhouse",
+      "token": "celonis"
+    },
+    {
+      "name": "CoreWeave",
+      "ats": "greenhouse",
+      "token": "coreweave"
+    },
+    {
+      "name": "Cresta",
+      "ats": "greenhouse",
+      "token": "cresta"
+    },
+    {
+      "name": "Descript",
+      "ats": "greenhouse",
+      "token": "descript"
+    },
+    {
+      "name": "Gong",
+      "ats": "greenhouse",
+      "token": "gongio"
+    },
+    {
+      "name": "HeyGen",
+      "ats": "greenhouse",
+      "token": "heygen"
+    },
+    {
+      "name": "Fin (Intercom)",
+      "ats": "greenhouse",
+      "token": "intercom"
+    },
+    {
+      "name": "Invisible Technologies",
+      "ats": "greenhouse",
+      "token": "invisibletech"
+    },
+    {
+      "name": "Labelbox",
+      "ats": "greenhouse",
+      "token": "labelbox"
+    },
+    {
+      "name": "Observe.AI",
+      "ats": "greenhouse",
+      "token": "observeai"
+    },
+    {
+      "name": "Otter.ai",
+      "ats": "greenhouse",
+      "token": "otterai"
+    },
+    {
+      "name": "Parloa",
+      "ats": "greenhouse",
+      "token": "parloa"
+    },
+    {
+      "name": "PolyAI",
+      "ats": "greenhouse",
+      "token": "polyai"
+    },
+    {
+      "name": "Snorkel AI",
+      "ats": "greenhouse",
+      "token": "snorkelai"
+    },
+    {
+      "name": "Suki",
+      "ats": "greenhouse",
+      "token": "suki"
+    },
+    {
+      "name": "Together AI",
+      "ats": "greenhouse",
+      "token": "togetherai"
+    },
+    {
+      "name": "Turing",
+      "ats": "greenhouse",
+      "token": "turing"
+    },
+    {
+      "name": "Typeface",
+      "ats": "greenhouse",
+      "token": "typeface"
+    },
+    {
+      "name": "Vercel",
+      "ats": "greenhouse",
+      "token": "vercel"
+    },
+    {
+      "name": "Workato",
+      "ats": "greenhouse",
+      "token": "workato"
+    },
+    {
+      "name": "Abridge",
+      "ats": "ashby",
+      "token": "abridge"
+    },
+    {
+      "name": "Ambience Healthcare",
+      "ats": "ashby",
+      "token": "ambiencehealthcare"
+    },
+    {
+      "name": "Artisan",
+      "ats": "ashby",
+      "token": "artisan"
+    },
+    {
+      "name": "Attio",
+      "ats": "ashby",
+      "token": "attio"
+    },
+    {
+      "name": "Baseten",
+      "ats": "ashby",
+      "token": "baseten"
+    },
+    {
+      "name": "Cerebras",
+      "ats": "ashby",
+      "token": "cerebras"
+    },
+    {
+      "name": "Clay",
+      "ats": "ashby",
+      "token": "claylabs"
+    },
+    {
+      "name": "Cognition",
+      "ats": "ashby",
+      "token": "cognition"
+    },
+    {
+      "name": "Cohere",
+      "ats": "ashby",
+      "token": "cohere"
+    },
+    {
+      "name": "Decagon",
+      "ats": "ashby",
+      "token": "decagon"
+    },
+    {
+      "name": "Deepgram",
+      "ats": "ashby",
+      "token": "deepgram"
+    },
+    {
+      "name": "Dust",
+      "ats": "ashby",
+      "token": "dust"
+    },
+    {
+      "name": "ElevenLabs",
+      "ats": "ashby",
+      "token": "elevenlabs"
+    },
+    {
+      "name": "Gamma",
+      "ats": "ashby",
+      "token": "gamma"
+    },
+    {
+      "name": "Granola",
+      "ats": "ashby",
+      "token": "granola"
+    },
+    {
+      "name": "Gumloop",
+      "ats": "ashby",
+      "token": "gumloop"
+    },
+    {
+      "name": "Harvey",
+      "ats": "ashby",
+      "token": "harvey"
+    },
+    {
+      "name": "Lambda",
+      "ats": "ashby",
+      "token": "lambda"
+    },
+    {
+      "name": "LangChain",
+      "ats": "ashby",
+      "token": "langchain"
+    },
+    {
+      "name": "Modal",
+      "ats": "ashby",
+      "token": "modal"
+    },
+    {
+      "name": "n8n",
+      "ats": "ashby",
+      "token": "n8n"
+    },
+    {
+      "name": "Notion",
+      "ats": "ashby",
+      "token": "notion"
+    },
+    {
+      "name": "OpenAI",
+      "ats": "ashby",
+      "token": "openai"
+    },
+    {
+      "name": "Perplexity",
+      "ats": "ashby",
+      "token": "perplexity"
+    },
+    {
+      "name": "Pinecone",
+      "ats": "ashby",
+      "token": "pinecone"
+    },
+    {
+      "name": "Poolside",
+      "ats": "ashby",
+      "token": "poolside"
+    },
+    {
+      "name": "Ramp",
+      "ats": "ashby",
+      "token": "ramp"
+    },
+    {
+      "name": "Relevance AI",
+      "ats": "ashby",
+      "token": "relevanceai"
+    },
+    {
+      "name": "Replicant",
+      "ats": "ashby",
+      "token": "replicant"
+    },
+    {
+      "name": "Replit",
+      "ats": "ashby",
+      "token": "replit"
+    },
+    {
+      "name": "Rogo",
+      "ats": "ashby",
+      "token": "rogo"
+    },
+    {
+      "name": "RunPod",
+      "ats": "ashby",
+      "token": "runpod"
+    },
+    {
+      "name": "Sierra",
+      "ats": "ashby",
+      "token": "sierra"
+    },
+    {
+      "name": "Supabase",
+      "ats": "ashby",
+      "token": "supabase"
+    },
+    {
+      "name": "Synthesia",
+      "ats": "ashby",
+      "token": "synthesia"
+    },
+    {
+      "name": "Tennr",
+      "ats": "ashby",
+      "token": "tennr"
+    },
+    {
+      "name": "UiPath",
+      "ats": "ashby",
+      "token": "uipath"
+    },
+    {
+      "name": "Vanta",
+      "ats": "ashby",
+      "token": "vanta"
+    },
+    {
+      "name": "Weaviate",
+      "ats": "ashby",
+      "token": "weaviate"
+    },
+    {
+      "name": "Writer",
+      "ats": "ashby",
+      "token": "writer"
+    },
+    {
+      "name": "Zapier",
+      "ats": "ashby",
+      "token": "zapier"
+    },
+    {
+      "name": "Palantir",
+      "ats": "lever",
+      "token": "palantir"
+    },
+    {
+      "name": "Level AI",
+      "ats": "lever",
+      "token": "levelai"
+    },
+    {
+      "name": "Outreach",
+      "ats": "lever",
+      "token": "outreach"
+    },
+    {
+      "name": "Surge AI",
+      "ats": "ashby",
+      "token": "surge-ai"
+    },
+    {
+      "name": "Browse AI",
+      "ats": "ashby",
+      "token": "browse.ai"
+    },
+    {
+      "name": "Pushpay",
+      "ats": "greenhouse",
+      "token": "pushpay",
+      "group": "faith"
+    },
+    {
+      "name": "Subsplash",
+      "ats": "greenhouse",
+      "token": "subsplash",
+      "group": "faith"
+    },
+    {
+      "name": "Planning Center",
+      "ats": "greenhouse",
+      "token": "planningcenter",
+      "group": "faith"
+    },
+    {
+      "name": "Givelify",
+      "ats": "greenhouse",
+      "token": "givelify",
+      "group": "faith"
+    },
+    {
+      "name": "Bloomerang",
+      "ats": "greenhouse",
+      "token": "bloomerang",
+      "group": "faith"
+    },
+    {
+      "name": "GoFundMe",
+      "ats": "greenhouse",
+      "token": "gofundme",
+      "group": "faith"
+    },
+    {
+      "name": "Qgiv",
+      "ats": "greenhouse",
+      "token": "qgiv",
+      "group": "faith"
+    },
+    {
+      "name": "Overflow",
+      "ats": "ashby",
+      "token": "overflow",
+      "group": "faith"
+    },
+    {
+      "name": "Virtuous",
+      "ats": "ashby",
+      "token": "virtuous",
+      "group": "faith"
+    },
+    {
+      "name": "Givebutter",
+      "ats": "ashby",
+      "token": "givebutter",
+      "group": "faith"
+    }
+  ],
+  "gig_ok_companies": [
+    "DataAnnotation",
+    "Alignerr",
+    "Labelbox",
+    "Outlier",
+    "Scale AI",
+    "Uber AI",
+    "micro1",
+    "Prolific",
+    "Mindrift",
+    "Toloka",
+    "TELUS Digital",
+    "Snorkel AI",
+    "Surge AI"
+  ],
+  "company_exclude": [
+    "Bright Vision Technologies",
+    "KATBOTZ",
+    "Talnt"
+  ],
+  "other_company_pay_min_max": 100000,
+  "marks_topic": "replace-with-a-second-long-random-topic",
+  "score_cap_per_run": 36,
+  "board_pay_floor": 60000,
+  "indeed": {
+    "enabled": true,
+    "python": "./.jobspy/bin/python",
+    "searches": [
+      {
+        "term": "implementation specialist",
+        "location": "United States",
+        "remote": true,
+        "results": 25
+      },
+      {
+        "term": "implementation manager",
+        "location": "United States",
+        "remote": true,
+        "results": 25
+      },
+      {
+        "term": "onboarding specialist",
+        "location": "United States",
+        "remote": true,
+        "results": 25
+      },
+      {
+        "term": "customer success manager",
+        "location": "United States",
+        "remote": true,
+        "results": 25
+      },
+      {
+        "term": "client success manager",
+        "location": "United States",
+        "remote": true,
+        "results": 25
+      },
+      {
+        "term": "technical account manager",
+        "location": "United States",
+        "remote": true,
+        "results": 25
+      },
+      {
+        "term": "solutions consultant",
+        "location": "United States",
+        "remote": true,
+        "results": 25
+      },
+      {
+        "term": "automation specialist",
+        "location": "United States",
+        "remote": true,
+        "results": 25
+      },
+      {
+        "term": "AI operations specialist",
+        "location": "United States",
+        "remote": true,
+        "results": 25
+      },
+      {
+        "term": "church software customer success",
+        "location": "United States",
+        "remote": true,
+        "results": 25
+      },
+      {
+        "term": "customer success manager",
+        "location": "Dallas, TX",
+        "remote": false,
+        "results": 25
+      },
+      {
+        "term": "implementation specialist",
+        "location": "Dallas, TX",
+        "remote": false,
+        "results": 25
+      },
+      {
+        "term": "client success manager",
+        "location": "Dallas, TX",
+        "remote": false,
+        "results": 25
+      }
+    ]
+  },
+  "linkedin": {
+    "enabled": true,
+    "pages": 2,
+    "searches": [
+      {
+        "term": "implementation specialist",
+        "location": "United States",
+        "remote": true
+      },
+      {
+        "term": "implementation manager",
+        "location": "United States",
+        "remote": true
+      },
+      {
+        "term": "onboarding specialist",
+        "location": "United States",
+        "remote": true
+      },
+      {
+        "term": "customer success manager",
+        "location": "United States",
+        "remote": true
+      },
+      {
+        "term": "client success manager",
+        "location": "United States",
+        "remote": true
+      },
+      {
+        "term": "technical account manager",
+        "location": "United States",
+        "remote": true
+      },
+      {
+        "term": "customer success manager",
+        "location": "Dallas, Texas, United States",
+        "remote": false
+      },
+      {
+        "term": "implementation specialist",
+        "location": "Dallas, Texas, United States",
+        "remote": false
+      },
+      {
+        "term": "client success manager",
+        "location": "Dallas, Texas, United States",
+        "remote": false
+      }
+    ]
+  }
+}

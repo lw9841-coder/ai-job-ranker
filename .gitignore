@@ -1,0 +1,22 @@
+# personal settings and profile
+config.json
+profile.md
+
+# run state and output
+seen.json
+scores.json
+health.json
+marks.json
+jobs-log.csv
+ranked.md
+new-jobs.md
+open-now.md
+logs/
+backup/
+.lock
+
+# environments
+.jobspy/
+__pycache__/
+*.pyc
+.DS_Store
