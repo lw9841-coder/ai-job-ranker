@@ -691,5 +691,8 @@
         "remote": false
       }
     ]
-  }
+  },
+  "ratings_cap_per_run": 16,
+  "kits_top": 15,
+  "apply_prep_per_run": 6
 }

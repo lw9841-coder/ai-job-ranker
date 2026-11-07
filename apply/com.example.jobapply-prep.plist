@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.example.jobapply-prep</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/path/to/ai-job-ranker/.apply/bin/python</string>
+		<string>/path/to/ai-job-ranker/apply/apply.py</string>
+		<string>--prep</string>
+	</array>
+	<key>WorkingDirectory</key>
+	<string>/path/to/ai-job-ranker</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/path/to/home/.local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+	</dict>
+	<key>StandardOutPath</key>
+	<string>/path/to/ai-job-ranker/logs/apply.log</string>
+	<key>StandardErrorPath</key>
+	<string>/path/to/ai-job-ranker/logs/apply.log</string>
+	<key>StartCalendarInterval</key>
+	<array>
+		<dict><key>Hour</key><integer>8</integer><key>Minute</key><integer>25</integer></dict>
+		<dict><key>Hour</key><integer>16</integer><key>Minute</key><integer>25</integer></dict>
+	</array>
+</dict>
+</plist>

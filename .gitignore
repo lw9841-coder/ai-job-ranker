@@ -1,6 +1,10 @@
 # personal settings and profile
 config.json
 profile.md
+resume.md
+apply/facts.json
+apply/history.md
+resumes/
 
 # run state and output
 seen.json
@@ -9,6 +13,13 @@ health.json
 marks.json
 jobs-log.csv
 ranked.md
+ranked.json
+open_cache.json
+kits/
+apply/state.json*
+apply/state.tmp
+apply/work/
+apply/.lock
 new-jobs.md
 open-now.md
 logs/
@@ -17,6 +28,8 @@ backup/
 
 # environments
 .jobspy/
+.apply/
+.apply-profile/
 __pycache__/
 *.pyc
 .DS_Store

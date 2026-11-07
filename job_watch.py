@@ -39,6 +39,8 @@ sys.path.insert(0, str(HERE))  # -I drops the script folder from the path; our o
 import marks as marks_mod  # noqa: E402
 import ranker  # noqa: E402
 import scorer  # noqa: E402
+import kits  # noqa: E402
+import ratings  # noqa: E402
 TODAY = NOW.astimezone().strftime("%Y-%m-%d")
 
 
@@ -263,8 +265,13 @@ def linkedin():
         for start in range(0, li.get("pages", 2) * 10, 10):
             q = urllib.parse.urlencode({"keywords": search["term"], "location": search["location"],
                                         "f_WT": 2 if search.get("remote") else 3, "f_TPR": "r604800", "start": start})
-            cards = parse_linkedin_cards(li_get(f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?{q}"))
-            time.sleep(4)
+            try:
+                cards = parse_linkedin_cards(li_get(f"https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?{q}"))
+            except Exception as e:  # one throttled search shouldn't wipe out the others
+                print(f"  linkedin '{search['term']}' page {start // 10 + 1}: {type(e).__name__}: {e}")
+                break
+            finally:
+                time.sleep(6)
             for c in cards:
                 lo, hi = pay_from_text(c["salary"])
                 remote = bool(search.get("remote"))
@@ -349,7 +356,30 @@ WATCHLIST_NAMES = {c["name"].lower() for c in CFG["companies"]}
 
 
 def key(j):
-    return re.sub(r"\W+", " ", f"{j['company']} {j['title']}").lower().strip()
+    return ranker.key(j["company"], j["title"])
+
+
+def job_text(j):
+    if j["id"].startswith("gh:"):
+        return greenhouse_text(j)
+    if j["id"].startswith("li:"):
+        return linkedin_text(j)
+    return ""
+
+
+def sticky(jobs, days=3):
+    """LinkedIn and Indeed results swing from run to run (throttling, paging), so keep their jobs on the
+    list for 3 days after they were last seen instead of letting them flicker off."""
+    path = HERE / "open_cache.json"
+    cache = load_json(path, {})
+    cutoff = (NOW - timedelta(days=days)).strftime("%Y-%m-%d")
+    for j in jobs:
+        if j["id"][:3] in ("li:", "in:"):
+            cache[j["id"]] = {**{k: v for k, v in j.items() if k not in ("text", "ai_text")}, "last_seen": TODAY}
+    cache = {i: c for i, c in cache.items() if c.get("last_seen", "") >= cutoff}
+    save_json(path, cache)
+    ids, keys = {j["id"] for j in jobs}, {key(j) for j in jobs}
+    return jobs + [dict(c) for i, c in cache.items() if i not in ids and key(c) not in keys]
 
 
 def collect():
@@ -534,32 +564,60 @@ def buttons(j):
             for label, word in (("Applied", "applied"), ("Skip", "skip"))]
 
 
-def ranked_body(j, s):
+def ranked_body(j, s, kit=False):
     where = " · location unclear, check it" if s.get("location_ok") == "unclear" else ""
+    agency = " · staffing agency" if ranker.is_agency(s) else ""
+    ready = "\nKit ready in kits/: tailored resume, cover letter, referral leads." if kit else ""
     return (f"Pick {s['they_pick_him']}/5 · Want {s['he_wants_it']}/5 · Job {s['job_quality']}/5 · "
-            f"{ranker.pay_text(j, s)}{where}\n{s.get('why', '')}")
+            f"{ranker.pay_text(j, s)}{where}{agency}\n{s.get('why', '')}{ready}")
 
 
-def send_morning(ranked, new_ids):
+def send_morning(ranked, new_ids, kit_ids=()):
     top = ranked[:5]
     for pos in range(len(top), 0, -1):  # #5 first, so #1 lands on top on the phone
         j, s = top[pos - 1]
         flag = " (new)" if j["id"] in new_ids else ""
-        ntfy(f"#{pos} {j['company']}: {j['title']}{flag}", ranked_body(j, s), click=j["url"], actions=buttons(j))
+        ntfy(f"#{pos} {j['company']}: {j['title']}{flag}", ranked_body(j, s, j["id"] in kit_ids),
+             click=j["url"], actions=buttons(j))
     ntfy(f"Apply today: your top {len(top)} of {len(ranked)}",
          "#1 is right below. Tap a job to open it. Tap Applied or Skip inside the ntfy app so it drops off the list.",
          tags=("trophy",))
 
 
-def send_new_top(ranked, new_ids, skip_top=0):
+def send_new_top(ranked, new_ids, skip_top=0, kit_ids=()):
     """Alert new jobs that rank in the top 10, skipping any already in the morning top 5."""
     for pos, (j, s) in enumerate(ranked[:10], 1):
         if j["id"] in new_ids and pos > skip_top:
-            ntfy(f"New #{pos}: {j['company']}: {j['title']}", ranked_body(j, s), click=j["url"],
+            ntfy(f"New #{pos}: {j['company']}: {j['title']}", ranked_body(j, s, j["id"] in kit_ids), click=j["url"],
                  tags=("sparkles",), actions=buttons(j))
 
 
-def score_missing(jobs, scores):
+def ask_outcomes(marks):
+    """Monday: for jobs applied to 5+ days ago with no answer yet, ask "Heard back?" (at most 3 Mondays each)."""
+    url = f"{CFG.get('ntfy_server', 'https://ntfy.sh')}/{CFG['marks_topic']}"
+    week = (NOW - timedelta(days=5)).strftime("%Y-%m-%d")
+    for s, m in marks["ids"].items():
+        if m.get("mark") != "applied" or m.get("outcome") in ("interview", "rejected", "offer"):
+            continue
+        if m.get("date", "") > week or m.get("asked", 0) >= 3:
+            continue
+        acts = [{"action": "http", "label": label, "url": url, "method": "POST", "body": f"{word} {s}", "clear": True}
+                for label, word in (("Interview", "interview"), ("Rejected", "rejected"), ("No reply", "noreply"))]
+        ntfy(f"Heard back from {m['title'].split(':')[0]}?", f"You applied {m['date']}: {m['title']}",
+             click=m.get("url") or None, tags=("question",), actions=acts)
+        m["asked"] = m.get("asked", 0) + 1
+    save_json(HERE / "marks.json", marks)
+
+
+def outcome_counts(marks):
+    ms = marks["ids"].values()
+    applied = [m for m in ms if m.get("mark") == "applied"]
+    count = lambda o: sum(1 for m in applied if m.get("outcome") == o)
+    return (f"Applied {len(applied)} · interviews {count('interview')} · offers {count('offer')} · "
+            f"rejected {count('rejected')} · waiting {len(applied) - count('interview') - count('offer') - count('rejected')}")
+
+
+def score_missing(jobs, scores, marks=None):
     """Score open jobs that have no score yet, new ones first, up to the per-run cap.
     Returns (attempted, scored); attempted > 0 with scored == 0 means the scorer itself is down."""
     todo = [j for j in jobs if j["id"] not in scores][: CFG.get("score_cap_per_run", 36)]
@@ -576,7 +634,16 @@ def score_missing(jobs, scores):
         ready.append(j)
     if not ready:
         return 0, 0
-    got = scorer.score_jobs(ready, PROFILE_FILE.read_text(), load_json(HERE / "health.json", {}))
+    health = load_json(HERE / "health.json", {})
+    unrated = sorted({j["company"] for j in ready if j["company"] and j["company"] not in health})
+    if unrated:
+        found = ratings.lookup(unrated[: CFG.get("ratings_cap_per_run", 16)])
+        health.update(found)
+        save_json(HERE / "health.json", health)
+        print(f"  looked up ratings for {len(found)} new companies")
+    by_sid = {ranker.sid(i): s for i, s in scores.items()}
+    profile = PROFILE_FILE.read_text() + (marks_mod.outcome_notes(marks, by_sid) if marks else "")
+    got = scorer.score_jobs(ready, profile, health)
     scores.update(got)
     print(f"  scored {len(got)} of {len(ready)} jobs ({len(todo) - len(ready)} still need posting text)")
     return len(ready), len(got)
@@ -593,7 +660,7 @@ def pull_marks(scores):
     save_json(HERE / "marks.json", m)
     marks_mod.mark_csv(LOG_CSV, updates)
     if updates:
-        print(f"  recorded {len(updates)} Applied/Skip taps")
+        print(f"  recorded taps for {len(updates)} jobs")
     return m
 
 
@@ -617,8 +684,30 @@ def pick_mode(arg, seen):
     return "marks"
 
 
+def mark_from_chat(kind, query):
+    """python3 job_watch.py --mark applied "acme onboarding"  (kinds: applied skip interview rejected noreply offer)"""
+    if kind not in marks_mod.KINDS:
+        print("kind must be one of:", ", ".join(marks_mod.KINDS)); return
+    scores, marks = load_json(HERE / "scores.json", {}), load_json(HERE / "marks.json", {"ids": {}, "keys": {}, "since": 0})
+    words = query.lower().split()
+    hits = [(i, s) for i, s in scores.items()
+            if ranker.sid(i) == query or all(w in f"{s.get('company', '')}: {s.get('title', '')}".lower() for w in words)]
+    if len(hits) != 1:
+        print(f"{len(hits)} matches; be more specific:" if hits else "no match")
+        for i, s in hits[:15]:
+            print(f"  {ranker.sid(i)}  {s.get('company')}: {s.get('title')}")
+        return
+    i, s = hits[0]
+    url, cols = marks_mod.record(marks, ranker.sid(i), kind, TODAY, s)
+    save_json(HERE / "marks.json", marks)
+    marks_mod.mark_csv(LOG_CSV, {url: cols} if url else {})
+    print(f"marked {kind}: {s.get('company')}: {s.get('title')}")
+
+
 def main():
     arg = sys.argv[1] if len(sys.argv) > 1 else ""
+    if arg == "--mark" and len(sys.argv) >= 4:
+        return mark_from_chat(sys.argv[2].lower(), " ".join(sys.argv[3:]))
     lock = open(HERE / ".lock", "w")
     try:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -640,6 +729,8 @@ def main():
           f"{BYTES[0] / 1e6:.1f} MB downloaded")
     for e in errors:
         print("  error:", e)
+    if mode != "dry-run":
+        jobs = sticky(jobs)
 
     if mode == "dry-run":
         for j in jobs:
@@ -648,9 +739,10 @@ def main():
 
     if mode == "rank-now":  # score anything waiting and rewrite ranked.md; sends nothing, changes no schedule state
         marks = pull_marks(scores)
-        score_missing(jobs, scores)
+        score_missing(jobs, scores, marks)
         save_json(HERE / "scores.json", scores)
         ranked = ranker.rank(jobs, scores, marks, load_json(SEEN_FILE, {}).get("ids", {}))
+        kits.build_kits(ranked[: CFG.get("kits_top", 5)], fetch_text=job_text, cap=CFG.get("kits_top", 5))
         ranker.write_ranked_md(HERE / "ranked.md", ranked, marks, stamp, waiting=sum(1 for j in jobs if j["id"] not in scores))
         for n, (j, s) in enumerate(ranked[:10], 1):
             print(f"  {n:2}. {s['they_pick_him']}/{s['he_wants_it']}/{s['job_quality']} {j['company']}: {j['title']} | {ranker.pay_text(j, s)}")
@@ -679,21 +771,29 @@ def main():
     marks = pull_marks(scores)
     new = [j for j in jobs if j["id"] not in seen["ids"] and key(j) not in seen["keys"]]
     new_ids = {j["id"] for j in new}
-    attempted, got = score_missing(sorted(jobs, key=lambda j: j["id"] not in new_ids), scores)
+    attempted, got = score_missing(sorted(jobs, key=lambda j: j["id"] not in new_ids), scores, marks)
     open_ids, cutoff = {j["id"] for j in jobs}, (NOW - timedelta(days=60)).strftime("%Y-%m-%d")
     scores = {i: s for i, s in scores.items() if i in open_ids or str(s.get("scored_at", ""))[:10] >= cutoff}
     save_json(HERE / "scores.json", scores)
     ranked = ranker.rank(jobs, scores, marks, seen["ids"])
     ranker.write_ranked_md(HERE / "ranked.md", ranked, marks, stamp, waiting=sum(1 for j in jobs if j["id"] not in scores))
 
+    try:
+        kit_ids = set(kits.build_kits(ranked[: CFG.get("kits_top", 5)], fetch_text=job_text, cap=CFG.get("kits_top", 5)))
+    except Exception as e:
+        kit_ids = set()
+        print(f"  kits skipped: {type(e).__name__}: {e}")
     alerts_ok = True
     try:
         if mode == "morning":
             if ranked:
-                send_morning(ranked, new_ids)
-            send_new_top(ranked, new_ids, skip_top=5)
+                send_morning(ranked, new_ids, kit_ids)
+            send_new_top(ranked, new_ids, skip_top=5, kit_ids=kit_ids)
+            if datetime.now().weekday() == 0 and seen.get("last_outcome_check") != TODAY:
+                ask_outcomes(marks)
+                seen["last_outcome_check"] = TODAY
         else:
-            send_new_top(ranked, new_ids)
+            send_new_top(ranked, new_ids, kit_ids=kit_ids)
     except Exception as e:
         alerts_ok = False
         print(f"  ranked alerts failed; they retry next run: {type(e).__name__}: {e}")
@@ -722,7 +822,7 @@ def main():
         with LOG_CSV.open() as f:
             n = sum(1 for row in csv.DictReader(f) if row["date_found"] >= week_ago)
         notify_quietly("Job watch weekly check",
-                       f"Still running. {n} new matching jobs in the last 7 days. Every one is in jobs-log.csv.",
+                       f"Still running. {n} new matching jobs in the last 7 days.\n{outcome_counts(marks)}",
                        tags=("calendar",))
         seen["last_weekly"] = TODAY
     save_seen(seen)

@@ -11,6 +11,8 @@ import job_watch  # noqa: E402
 import marks  # noqa: E402
 import ranker  # noqa: E402
 import scorer  # noqa: E402
+import kits  # noqa: E402
+import referrals  # noqa: E402
 
 
 def job(i, company="Acme", title="Customer Success Manager", text="Pay: $70,000 - $80,000. Remote US.", pay=""):
@@ -92,7 +94,7 @@ class MarksTests(unittest.TestCase):
             p = Path(d) / "log.csv"
             with p.open("w", newline="") as f:
                 csv.writer(f).writerows([["date_found", "link", "applied"], ["2026-10-17", "https://x/1", ""], ["2026-10-17", "https://x/2", ""]])
-            marks.mark_csv(p, {"https://x/1": "2026-10-19"})
+            marks.mark_csv(p, {"https://x/1": {"applied": "2026-10-19"}})
             with p.open() as f:
                 rows = list(csv.reader(f))
             self.assertEqual(rows[1][2], "2026-10-19")
@@ -207,3 +209,89 @@ class SmallFixTests(unittest.TestCase):
         body = job_watch.ranked_body(job("a"), score(4, 4, 4, loc="unclear"))
         self.assertIn("location unclear", body)
         self.assertNotIn("location unclear", job_watch.ranked_body(job("a"), score(4, 4, 4)))
+
+
+class QualityTests(unittest.TestCase):
+    def test_same_job_on_two_boards_shares_a_key(self):
+        self.assertEqual(ranker.key("Fieldwire by Hilti", "SMB Construction Success Manager"),
+                         ranker.key("Fieldwire", "SMB Construction Success Manager"))
+        self.assertEqual(ranker.key("Acme, Inc.", "CSM - Remote, USA"), ranker.key("Acme", "CSM"))
+
+    def test_agencies_rank_lower(self):
+        self.assertLess(ranker.composite(score(4, 4, 4, company="Insight Global")), ranker.composite(score(4, 4, 4, company="Acme")))
+        self.assertLess(ranker.composite(score(4, 4, 4, agency="yes")), ranker.composite(score(4, 4, 4)))
+
+
+class OutcomeTests(unittest.TestCase):
+    def test_outcome_keeps_applied_and_fills_log(self):
+        s = ranker.sid("x:1")
+        m = {"ids": {}, "keys": {}, "since": 0}
+        info = {s: {"company": "Pushpay", "title": "CSM", "url": "https://x/1"}}
+        marks.apply_marks([(1760000000, f"applied {s}"), (1760600000, f"interview {s}")], m, info)
+        self.assertEqual((m["ids"][s]["mark"], m["ids"][s]["outcome"]), ("applied", "interview"))
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "log.csv"
+            with p.open("w", newline="") as f:
+                csv.writer(f).writerows([["date_found", "link", "applied"], ["2026-10-17", "https://x/1", ""]])
+            marks.mark_csv(p, {"https://x/1": {"applied": "2026-10-20", "outcome": "interview 2026-10-27"}})
+            with p.open() as f:
+                rows = list(csv.reader(f))
+            self.assertEqual(rows[0][-1], "outcome")
+            self.assertEqual(rows[1][2:], ["2026-10-20", "interview 2026-10-27"])
+
+    def test_outcome_notes_wait_for_five(self):
+        m = {"ids": {f"{n:010d}": {"mark": "applied", "outcome": "rejected", "title": f"C{n}: T"} for n in range(4)}}
+        self.assertEqual(marks.outcome_notes(m, {}), "")
+        m["ids"]["0000000009"] = {"mark": "applied", "outcome": "interview", "title": "Pushpay: CSM"}
+        self.assertIn("interview: Pushpay: CSM", marks.outcome_notes(m, {}))
+
+    def test_monday_check_asks_with_three_buttons(self):
+        sent = []
+        real = job_watch.ntfy
+        job_watch.ntfy = lambda title, message, click=None, tags=(), actions=None: sent.append((title, actions))
+        saved = job_watch.save_json
+        job_watch.save_json = lambda *a: None
+        try:
+            m = {"ids": {"0123456789": {"mark": "applied", "date": "2026-10-01", "title": "Pushpay: CSM", "url": "u"},
+                         "9876543210": {"mark": "applied", "date": "2026-10-01", "outcome": "rejected", "title": "X: Y"}}}
+            job_watch.ask_outcomes(m)
+        finally:
+            job_watch.ntfy, job_watch.save_json = real, saved
+        self.assertEqual([t for t, _ in sent], ["Heard back from Pushpay?"])
+        self.assertEqual([a["label"] for a in sent[0][1]], ["Interview", "Rejected", "No reply"])
+
+
+class KitTests(unittest.TestCase):
+    def test_flags_numbers_not_on_resume_or_posting(self):
+        self.assertEqual(kits.numbers_not_in(["275+ accounts, 113,099 records"], "Built 275+ relationships",
+                                             "Saved 40% of time"), ["40%"])
+
+    def test_em_dashes_removed(self):
+        self.assertEqual(kits.no_em_dashes("I build — and I teach"), "I build, and I teach")
+
+    def test_contacts_match_company_or_email_domain(self):
+        people = [{"name": "A", "org": "Pushpay Inc.", "title": "", "emails": []},
+                  {"name": "B", "org": "", "title": "", "emails": ["b@harvey.ai"]},
+                  {"name": "C", "org": "Push Pay Group", "title": "", "emails": []}]
+        self.assertEqual([p["name"] for p in referrals.contact_matches("Pushpay", people)], ["A"])
+        self.assertEqual([p["name"] for p in referrals.contact_matches("Harvey", people)], ["B"])
+
+    def test_kit_files_written_from_fake_claude(self):
+        reply = json.dumps({"resume_md": "# Jane Doe\n## Experience\n- 275+ customer accounts — built",
+                            "cover_letter": "Dear Hiring Team,\nI build.\nJane Doe", "stress": ["a", "b", "c"],
+                            "screening": [{"q": "Degree?", "a": "High school diploma plus experience."}],
+                            "outreach": "Hi [Name], quick question about the team."})
+        with tempfile.TemporaryDirectory() as d:
+            saved = (kits.KITS, kits.resume_text, kits.render_pdf, referrals.linkedin_people)
+            kits.KITS = Path(d)
+            kits.resume_text = lambda: ("Jane Doe 275+ customer accounts", "resume.md")
+            kits.render_pdf = lambda *a: False
+            referrals.linkedin_people = lambda company, **kw: []
+            try:
+                folder, check = kits.build_kit(job("gh:x:1", company="Pushpay"), score(5, 5, 3), [], run=lambda p: reply)
+                readme = (folder / "README.md").read_text()
+                self.assertIn("Drafts only", readme)
+                self.assertNotIn("—", (folder / "resume.md").read_text())
+                self.assertEqual(check, [])
+            finally:
+                kits.KITS, kits.resume_text, kits.render_pdf, referrals.linkedin_people = saved

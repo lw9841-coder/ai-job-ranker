@@ -27,6 +27,7 @@ Reply with ONLY a JSON array, one object per posting, each with these keys:
 - location_ok: "yes", "no", or "unclear". "yes" means the posting allows living where the profile says the candidate can live, or it is hybrid in the area the profile names.
 - they_pick_him, he_wants_it, job_quality: integers 1-5 per the rubric
 - gaps: a short list of the must-haves he lacks
+- agency: "yes" if a staffing or recruiting agency posted it or the real employer is hidden ("our client"), else "no"
 - why: one plain sentence, 25 words or fewer
 No estimates: copy pay exactly from the posting or write "not listed".
 
@@ -42,20 +43,21 @@ No estimates: copy pay exactly from the posting or write "not listed".
 """
 
 
-def run_claude(prompt, timeout=900):
+def run_claude(prompt, timeout=900, tools=""):
+    """tools="" means no tools at all; pass e.g. "WebSearch" to allow only that one."""
     err = None
     for model in MODELS:
         try:
-            return _run_once(prompt, model, timeout)
+            return _run_once(prompt, model, timeout, tools)
         except RuntimeError as e:
             err = e
     raise err
 
 
-def _run_once(prompt, model, timeout):
+def _run_once(prompt, model, timeout, tools=""):
     env = {k: v for k, v in os.environ.items() if k != "ANTHROPIC_API_KEY"}  # use the plan, never per-token billing
-    cmd = [CLAUDE, "-p", "--model", model, "--output-format", "json", "--tools", "",
-           "--no-session-persistence", "--strict-mcp-config"]
+    cmd = [CLAUDE, "-p", "--model", model, "--output-format", "json", "--tools", tools,
+           "--no-session-persistence", "--strict-mcp-config"] + (["--allowedTools", tools] if tools else [])
     p = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=timeout, env=env, cwd=str(HERE))
     try:
         out = json.loads(p.stdout)
